@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  color: #1e0a3c;
+  background: #faf9f7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Dark mode */
+.dark body,
+body.dark {
+  color: #e2e8f0;
+  background: #0f1117;
+}
+
+@layer components {
+  .card {
+    background: #fff;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .dark .card {
+    background: #1a1d25;
+    border-color: #2d3140;
+  }
+
+  .btn-primary {
+    background: #1e0a3c;
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: #fff;
+    border: 1px solid #f1f5f9;
+    color: #475569;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .dark .btn-ghost {
+    background: #1a1d25;
+    border-color: #2d3140;
+    color: #a0a5b0;
+  }
+  .btn-ghost:hover { background: #f1f5f9; }
+  .dark .btn-ghost:hover { background: #2d3140; }
+  .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    background: #fff;
+    color: #1e0a3c;
+  }
+  .dark .form-input {
+    background: #1a1d25;
+    border-color: #2d3140;
+    color: #e2e8f0;
+  }
+  .form-input:focus {
+    box-shadow: 0 0 0 2px rgba(30,10,60,0.15);
+    border-color: rgba(30,10,60,0.25);
+  }
+  .form-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e0a3c;
+    margin-bottom: 6px;
+  }
+  .dark .form-label {
+    color: #e2e8f0;
+  }
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
+
+@media print {
+  .no-print { display: none !important; }
+}
