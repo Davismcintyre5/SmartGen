@@ -6,7 +6,14 @@ export default defineConfig({
   server: {
     port: 3003,
     proxy: {
-      '/smartgen': { target: 'http://localhost:5000', changeOrigin: true }
+      '/smartgen': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      }
     }
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
   }
 });
