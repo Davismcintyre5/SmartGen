@@ -26,6 +26,10 @@ export default function SavedDocumentsPage() {
     }
   }
 
+  const handleEdit = (doc) => {
+    navigate(`/editor/${doc.templateId}?edit=${doc._id}`)
+  }
+
   return (
     <div className="max-w-4xl mx-auto animate-slide-up">
       <div className="mb-6">
@@ -56,7 +60,7 @@ export default function SavedDocumentsPage() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => navigate(`/editor/doc?id=${doc._id}`)}
+                onClick={() => handleEdit(doc)}
                 className="p-2 hover:bg-mist rounded-lg transition"
                 title="Edit document"
               >

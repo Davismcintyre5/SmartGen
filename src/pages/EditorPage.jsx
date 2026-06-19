@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { PrinterIcon, RotateCcw, Save, ChevronLeft, Eye, EyeOff } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
 import toast from 'react-hot-toast'
@@ -18,6 +18,8 @@ function initData(schema) {
 
 export default function EditorPage() {
   const { templateId } = useParams()
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('edit')
   const navigate = useNavigate()
   const { filtered, category, setCategory, search, setSearch, categories } = useTemplates()
 
@@ -27,11 +29,26 @@ export default function EditorPage() {
   const [saving, setSaving] = useState(false)
   const printRef = useRef(null)
 
+  // Load template from URL param or saved document
   useEffect(() => {
-    const found = LOCAL_TEMPLATES.find(t => t.id === templateId) || LOCAL_TEMPLATES[0]
-    setTemplate(found)
-    setFormData(initData(found.schema))
-  }, [templateId])
+    if (editId) {
+      documentService.getById(editId).then(({ data }) => {
+        if (data) {
+          const tpl = LOCAL_TEMPLATES.find(t => t.id === data.templateId) || LOCAL_TEMPLATES[0]
+          setTemplate(tpl)
+          setFormData(data.formData || initData(tpl.schema))
+        }
+      }).catch(() => {
+        const found = LOCAL_TEMPLATES.find(t => t.id === templateId) || LOCAL_TEMPLATES[0]
+        setTemplate(found)
+        setFormData(initData(found.schema))
+      })
+    } else {
+      const found = LOCAL_TEMPLATES.find(t => t.id === templateId) || LOCAL_TEMPLATES[0]
+      setTemplate(found)
+      setFormData(initData(found.schema))
+    }
+  }, [templateId, editId])
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
@@ -52,8 +69,13 @@ export default function EditorPage() {
     if (!template) return
     setSaving(true)
     try {
-      await documentService.save({ templateId: template.id, templateName: template.name, formData })
-      toast.success('Document saved!')
+      if (editId) {
+        await documentService.update(editId, { formData })
+        toast.success('Document updated!')
+      } else {
+        await documentService.save({ templateId: template.id, templateName: template.name, formData })
+        toast.success('Document saved!')
+      }
     } catch {
       toast.error('Save failed — are you connected to the server?')
     } finally {
@@ -127,7 +149,7 @@ export default function EditorPage() {
                 <PrinterIcon size={15} /> Print / PDF
               </button>
               <button onClick={handleSave} disabled={saving} className="btn-ghost flex items-center gap-2">
-                <Save size={15} /> {saving ? 'Saving…' : 'Save'}
+                <Save size={15} /> {saving ? 'Saving…' : editId ? 'Update' : 'Save'}
               </button>
               <button onClick={resetForm} className="btn-ghost flex items-center gap-2">
                 <RotateCcw size={14} /> Reset
