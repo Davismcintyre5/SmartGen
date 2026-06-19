@@ -535,14 +535,16 @@ export const templates = [
     name: 'Curriculum Vitae (CV)',
     category: 'cv',
     icon: '👤',
-    description: 'Clean, professional CV / résumé layout.',
+    description: 'Clean, professional CV / résumé layout with photo, projects, referees, and hobbies.',
     schema: [
       { name: 'fullName',      label: 'Full Name',             type: 'text',     default: 'Grace Njeri Kamau' },
       { name: 'jobTitle',      label: 'Professional Title',    type: 'text',     default: 'Senior Software Engineer' },
+      { name: 'photoUrl',      label: 'Photo URL (optional)',  type: 'text',     default: '' },
       { name: 'email',         label: 'Email',                 type: 'text',     default: 'grace.kamau@email.com' },
       { name: 'phone',         label: 'Phone',                 type: 'text',     default: '+254 722 456 789' },
       { name: 'location',      label: 'Location',              type: 'text',     default: 'Nairobi, Kenya' },
-      { name: 'linkedin',      label: 'LinkedIn / Portfolio',  type: 'text',     default: 'linkedin.com/in/grace-kamau' },
+      { name: 'linkedin',      label: 'Portfolio / LinkedIn',  type: 'text',     default: 'linkedin.com/in/grace-kamau' },
+      { name: 'github',        label: 'GitHub (optional)',     type: 'text',     default: '' },
       { name: 'summary',       label: 'Professional Summary',  type: 'textarea', rows: 3,
         default: 'Results-driven Software Engineer with 6+ years of experience building scalable web applications. Adept in React, Node.js, and cloud infrastructure. Passionate about clean code, mentorship, and delivering user-centric products.' },
       { name: 'experience',    label: 'Work Experience',       type: 'textarea', rows: 5,
@@ -550,48 +552,111 @@ export const templates = [
       { name: 'education',     label: 'Education',             type: 'textarea', rows: 3,
         default: 'BSc. Computer Science | University of Nairobi | 2015–2019\nAWS Certified Solutions Architect | 2022\nGoogle Professional Data Engineer | 2023' },
       { name: 'skills',        label: 'Key Skills (comma-separated)', type: 'text', default: 'React, Node.js, TypeScript, MongoDB, AWS, Docker, PostgreSQL, Python, Git, Agile/Scrum' },
+      { name: 'projects',      label: 'Projects (one per line: Name | Tech | Link)', type: 'textarea', rows: 4,
+        default: 'DocuSoft | React, Node.js, MongoDB | docusoftstore.pxxl.click\nSmartGen | Python, FastAPI, React | smartgen.pxxl.click\nHDM Portfolio | React, Tailwind, Express | hdmdevelopers.pxxl.click' },
+      { name: 'hobbies',       label: 'Hobbies (comma-separated)', type: 'text', default: 'Open Source, Chess, Photography, Hiking' },
+      { name: 'referees',      label: 'Referees (one per line: Name, Title, Organization, Phone, Email)', type: 'textarea', rows: 3,
+        default: 'Dr. Carol Mutua, Senior Lecturer, Strathmore University, +254 722 000 000, c.mutua@strathmore.edu\nProf. James Otieno, Dean of Engineering, University of Nairobi, +254 733 000 000, j.otieno@uonbi.ac.ke' },
     ],
     render: d => {
-      const skills = (d.skills||'').split(',').map(s=>s.trim()).filter(Boolean)
+      const skills = (d.skills||'').split(',').map(s=>s.trim()).filter(Boolean);
+      const hobbies = (d.hobbies||'').split(',').map(s=>s.trim()).filter(Boolean);
+      
+      // Parse projects: Name | Tech | Link
+      const projects = (d.projects||'').split('\n').filter(Boolean).map(line => {
+        const parts = line.split('|').map(s=>s.trim());
+        return { name: parts[0]||'', tech: parts[1]||'', link: parts[2]||'' };
+      });
+      
+      // Parse referees: Name, Title, Org, Phone, Email
+      const referees = (d.referees||'').split('\n').filter(Boolean).map(line => {
+        const parts = line.split(',').map(s=>s.trim());
+        return { name: parts[0]||'', title: parts[1]||'', org: parts[2]||'', phone: parts[3]||'', email: parts[4]||'' };
+      });
+
+      // Photo or initials
+      const photoHTML = d.photoUrl
+        ? `<img src="${d.photoUrl}" alt="Photo" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #93c5fd;margin-bottom:1rem" />`
+        : `<div style="width:100px;height:100px;border-radius:50%;background:#1e293b;color:#93c5fd;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin-bottom:1rem;border:3px solid #93c5fd">${(d.fullName||'?').charAt(0)}</div>`;
+
       return `
-      <div style="font-family:'Times New Roman',serif;background:#fff;display:flex;min-height:400px">
-        <div style="width:35%;background:#0f172a;color:#fff;padding:1.5rem .75rem">
-          <div style="margin-bottom:1.5rem">
-            <div style="font-size:1.2rem;font-weight:700;line-height:1.2">${dash(d.fullName)}</div>
-            <div style="font-size:.75rem;color:#93c5fd;margin-top:.25rem">${dash(d.jobTitle)}</div>
-          </div>
-          <div style="font-size:.72rem;margin-bottom:1.5rem;line-height:1.8">
-            <div style="color:#94a3b8;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.25rem">Contact</div>
-            <div>📧 ${dash(d.email)}</div>
-            <div>📞 ${dash(d.phone)}</div>
-            <div>📍 ${dash(d.location)}</div>
-            <div>🔗 ${dash(d.linkedin)}</div>
-          </div>
-          <div>
-            <div style="color:#94a3b8;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">Skills</div>
-            <div style="display:flex;flex-wrap:wrap;gap:.3rem">
-              ${skills.map(s=>`<span style="background:#1e293b;color:#93c5fd;padding:.15rem .4rem;border-radius:3px;font-size:.65rem">${s}</span>`).join('')}
+      <div style="font-family:'Times New Roman',serif;background:#fff">
+        <h1 style="text-align:center;font-size:1.3rem;font-weight:700;letter-spacing:.15em;padding:1.2rem 0 .5rem;border-bottom:3px double #0f172a;margin:0 1.5rem">CURRICULUM VITAE</h1>
+        <div style="display:flex;min-height:400px">
+          <div style="width:35%;background:#0f172a;color:#fff;padding:1.5rem 1rem">
+            <div style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:1.5rem">
+              ${photoHTML}
+              <div style="font-size:1.1rem;font-weight:700;line-height:1.2">${dash(d.fullName)}</div>
+              <div style="font-size:.78rem;color:#93c5fd;margin-top:.25rem">${dash(d.jobTitle)}</div>
             </div>
+            <div style="font-size:.85rem;margin-bottom:1.5rem;line-height:2">
+              <div style="color:#94a3b8;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.3rem">Contact</div>
+              ${d.email ? `<div>📧 ${dash(d.email)}</div>` : ''}
+              ${d.phone ? `<div>📞 ${dash(d.phone)}</div>` : ''}
+              ${d.location ? `<div>📍 ${dash(d.location)}</div>` : ''}
+              ${d.linkedin ? `<div>🔗 Portfolio: ${dash(d.linkedin)}</div>` : ''}
+              ${d.github ? `<div>🐙 GitHub: ${dash(d.github)}</div>` : ''}
+            </div>
+            ${skills.length > 0 ? `
+            <div style="margin-bottom:1.5rem">
+              <div style="color:#94a3b8;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">Skills</div>
+              <div style="display:flex;flex-wrap:wrap;gap:.3rem">
+                ${skills.map(s=>`<span style="background:#1e293b;color:#93c5fd;padding:.2rem .5rem;border-radius:3px;font-size:.7rem">${s}</span>`).join('')}
+              </div>
+            </div>` : ''}
+            ${hobbies.length > 0 ? `
+            <div style="margin-bottom:1.5rem">
+              <div style="color:#94a3b8;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">Hobbies</div>
+              <div style="display:flex;flex-wrap:wrap;gap:.3rem">
+                ${hobbies.map(h=>`<span style="background:#1e293b;color:#93c5fd;padding:.2rem .5rem;border-radius:3px;font-size:.7rem">${h}</span>`).join('')}
+              </div>
+            </div>` : ''}
+            ${referees.some(r=>r.name) ? `
+            <div>
+              <div style="color:#94a3b8;font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">Referees</div>
+              ${referees.filter(r=>r.name).map(r=>`
+                <div style="font-size:.7rem;margin-bottom:.6rem;line-height:1.5">
+                  <div style="font-weight:600;color:#fff">${dash(r.name)}</div>
+                  <div style="color:#93c5fd">${dash(r.title)}</div>
+                  <div style="color:#94a3b8">${dash(r.org)}</div>
+                  ${r.phone ? `<div style="color:#94a3b8">📞 ${dash(r.phone)}</div>` : ''}
+                  ${r.email ? `<div style="color:#94a3b8;font-size:.65rem">✉️ ${dash(r.email)}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>` : ''}
           </div>
-        </div>
-        <div style="flex:1;padding:1.5rem;font-size:.82rem">
-          <section style="margin-bottom:1rem">
-            <h3 style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0f172a;padding-bottom:.2rem;margin-bottom:.5rem">Profile</h3>
-            <p style="color:#374151">${dash(d.summary)}</p>
-          </section>
-          <section style="margin-bottom:1rem">
-            <h3 style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0f172a;padding-bottom:.2rem;margin-bottom:.5rem">Experience</h3>
-            <div style="color:#374151;white-space:pre-wrap">${dash(d.experience)}</div>
-          </section>
-          <section>
-            <h3 style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0f172a;padding-bottom:.2rem;margin-bottom:.5rem">Education & Certifications</h3>
-            <div style="color:#374151;white-space:pre-wrap">${dash(d.education)}</div>
-          </section>
+          <div style="flex:1;padding:1.5rem;font-size:.87rem">
+            ${d.summary ? `
+            <section style="margin-bottom:1.2rem">
+              <h3 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0f172a;padding-bottom:.2rem;margin-bottom:.5rem">Profile</h3>
+              <p style="color:#374151">${dash(d.summary)}</p>
+            </section>` : ''}
+            ${d.experience ? `
+            <section style="margin-bottom:1.2rem">
+              <h3 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0f172a;padding-bottom:.2rem;margin-bottom:.5rem">Experience</h3>
+              <div style="color:#374151;white-space:pre-wrap">${dash(d.experience)}</div>
+            </section>` : ''}
+            ${d.education ? `
+            <section style="margin-bottom:1.2rem">
+              <h3 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0f172a;padding-bottom:.2rem;margin-bottom:.5rem">Education & Certifications</h3>
+              <div style="color:#374151;white-space:pre-wrap">${dash(d.education)}</div>
+            </section>` : ''}
+            ${projects.some(p=>p.name) ? `
+            <section style="margin-bottom:1.2rem">
+              <h3 style="font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid #0f172a;padding-bottom:.2rem;margin-bottom:.5rem">Projects</h3>
+              ${projects.filter(p=>p.name).map(p=>`
+                <div style="margin-bottom:.5rem">
+                  <div style="font-weight:600;color:#0f172a">${dash(p.name)}</div>
+                  ${p.tech ? `<div style="color:#64748b;font-size:.8rem">${dash(p.tech)}</div>` : ''}
+                  ${p.link ? `<a href="${p.link.startsWith('http')?p.link:'https://'+p.link}" style="color:#2563eb;font-size:.75rem">🔗 ${dash(p.link)}</a>` : ''}
+                </div>
+              `).join('')}
+            </section>` : ''}
+          </div>
         </div>
       </div>`
     }
   },
-
   // ── 12. Cover Letter ─────────────────────────────────────────
   {
     id: 'letter-cover',
